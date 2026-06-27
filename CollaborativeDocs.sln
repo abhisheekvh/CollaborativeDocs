@@ -11,10 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CollaborativeDocs.Applicati
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CollaborativeDocs.Infrastructure", "CollaborativeDocs.Infrastructure\CollaborativeDocs.Infrastructure.csproj", "{F5DB5F70-8B75-488C-B977-2061A2C90033}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CollaborativeDocs.Persistence", "CollaborativeDocs.Persistence\CollaborativeDocs.Persistence.csproj", "{AD6618DB-17C3-496C-BC43-82AEACC8C95E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CollaborativeDocs.Contracts", "CollaborativeDocs.Contracts\CollaborativeDocs.Contracts.csproj", "{8B671C25-93B0-4B17-A497-7C871B5AF466}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CollaborativeDocs.Tests", "CollaborativeDocs.Tests\CollaborativeDocs.Tests.csproj", "{0DCADD37-C2B4-4BB2-812D-A587E86E87E7}"
 EndProject
 Global
@@ -39,14 +35,6 @@ Global
 		{F5DB5F70-8B75-488C-B977-2061A2C90033}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F5DB5F70-8B75-488C-B977-2061A2C90033}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F5DB5F70-8B75-488C-B977-2061A2C90033}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AD6618DB-17C3-496C-BC43-82AEACC8C95E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AD6618DB-17C3-496C-BC43-82AEACC8C95E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AD6618DB-17C3-496C-BC43-82AEACC8C95E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AD6618DB-17C3-496C-BC43-82AEACC8C95E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8B671C25-93B0-4B17-A497-7C871B5AF466}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8B671C25-93B0-4B17-A497-7C871B5AF466}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8B671C25-93B0-4B17-A497-7C871B5AF466}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8B671C25-93B0-4B17-A497-7C871B5AF466}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0DCADD37-C2B4-4BB2-812D-A587E86E87E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0DCADD37-C2B4-4BB2-812D-A587E86E87E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0DCADD37-C2B4-4BB2-812D-A587E86E87E7}.Release|Any CPU.ActiveCfg = Release|Any CPU

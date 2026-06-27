@@ -17,6 +17,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CollaborativeDocs.API\CollaborativeDocs.API.csproj" />
+    <ProjectReference Include="..\CollaborativeDocs.Application\CollaborativeDocs.Application.csproj" />
+    <ProjectReference Include="..\CollaborativeDocs.Domain\CollaborativeDocs.Domain.csproj" />
+    <ProjectReference Include="..\CollaborativeDocs.Infrastructure\CollaborativeDocs.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
 
