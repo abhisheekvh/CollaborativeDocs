@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CollaborativeDocs.Application.Features.Documents.DTOs
+namespace CollaborativeDocs.Application.Documents.Contracts
 {
     public class CreateDocumentRequest
     {
