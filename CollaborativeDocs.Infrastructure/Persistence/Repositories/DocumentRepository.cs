@@ -1,5 +1,6 @@
 ﻿using CollaborativeDocs.Application.Interfaces.Repositories;
 using CollaborativeDocs.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,17 @@ namespace CollaborativeDocs.Infrastructure.Persistence.Repositories
             await _context.SaveChangesAsync();
             return document;
 
+        }
+        public async Task<DomainDocument?> GetByIdAsync(Guid id,CancellationToken cancellationToken)
+        {
+            var document=  await _context.Documents.FirstOrDefaultAsync(d => d.Id == id, cancellationToken);
+            return document;
+        }
+
+        public async Task<List<DomainDocument>> GetAllAsync(CancellationToken cancellationToken)
+        {
+            var documents = await _context.Documents.OrderByDescending(d => d.CreatedAt).ToListAsync();
+            return documents;
         }
 
     }

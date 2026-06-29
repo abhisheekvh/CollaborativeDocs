@@ -1,8 +1,10 @@
 ﻿using CollaborativeDocs.Application.Documents.Commands.CreateDocument;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,8 +14,7 @@ namespace CollaborativeDocs.Application.Extensions
     {
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
-            services.AddScoped<CreateDocumentHandler>();
-
+            services.AddMediatR(Assembly.GetExecutingAssembly());
             return services;
         }
     }

@@ -1,32 +1,29 @@
 ﻿using CollaborativeDocs.Application.Documents.Contracts;
 using CollaborativeDocs.Application.Interfaces.Repositories;
 using CollaborativeDocs.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using MediatR;
 
-namespace CollaborativeDocs.Application.Documents.Commands.CreateDocument
+namespace CollaborativeDocs.Application.Documents.Commands.CreateDocument;
+
+public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentCommand, DocumentResponse>
 {
-    public class CreateDocumentHandler
+    private readonly IDocumentRepository _repository;
+
+    public CreateDocumentCommandHandler(IDocumentRepository repository)
     {
-        private readonly IDocumentRepository _documentRepository;
-        public CreateDocumentHandler(IDocumentRepository documentRepository)
-        {
-            _documentRepository= documentRepository;
-        }
-        public async Task<DocumentResponse> HandleAsync(CreateDocumentRequest request, CancellationToken cancellationToken)
-        {
-            DomainDocument domainDocument = new DomainDocument(request.Title);
+        _repository = repository;
+    }
 
-            var createdDocument=await _documentRepository.CreateAsync(domainDocument, cancellationToken);
+    public async Task<DocumentResponse> Handle(CreateDocumentCommand request,CancellationToken cancellationToken)
+    {
+        var document = new DomainDocument(request.Title);
 
-            return new DocumentResponse
-            {
-                Id = createdDocument.Id,
-                Title = createdDocument.Title,
-            };
-        }
+        await _repository.CreateAsync(document, cancellationToken);
+
+        return new DocumentResponse
+        {
+            Id = document.Id,
+            Title = document.Title
+        };
     }
 }

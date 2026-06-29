@@ -10,7 +10,9 @@ namespace CollaborativeDocs.Application.Interfaces.Repositories
     public interface IDocumentRepository
     {
         Task<DomainDocument> CreateAsync(DomainDocument document, CancellationToken cancellationToken);
-        
-        
+
+        Task<DomainDocument?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+
+        Task<List<DomainDocument>> GetAllAsync(CancellationToken cancellationToken);
     }
 }
