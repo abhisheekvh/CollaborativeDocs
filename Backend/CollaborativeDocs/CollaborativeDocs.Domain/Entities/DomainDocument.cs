@@ -32,7 +32,7 @@ namespace CollaborativeDocs.Domain.Entities
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public void Rename(string title)
+        public void UpdateTitle(string title)
         {
             Title = title;
             UpdatedAt = DateTime.UtcNow;

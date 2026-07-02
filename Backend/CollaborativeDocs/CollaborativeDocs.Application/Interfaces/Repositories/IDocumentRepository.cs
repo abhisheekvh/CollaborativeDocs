@@ -14,5 +14,8 @@ namespace CollaborativeDocs.Application.Interfaces.Repositories
         Task<DomainDocument?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
         Task<List<DomainDocument>> GetAllAsync(CancellationToken cancellationToken);
+
+        Task UpdateAsync(DomainDocument document, CancellationToken cancellationToken);
+        Task DeleteAsync(DomainDocument document, CancellationToken cancellationToken);
     }
 }

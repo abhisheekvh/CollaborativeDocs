@@ -24,14 +24,22 @@ namespace CollaborativeDocs.Infrastructure.Persistence.Repositories
         }
         public async Task<DomainDocument?> GetByIdAsync(Guid id,CancellationToken cancellationToken)
         {
-            var document=  await _context.Documents.FirstOrDefaultAsync(d => d.Id == id, cancellationToken);
+            var document=  await _context.Documents.FirstOrDefaultAsync(d => d.Id == id && !d.IsDeleted, cancellationToken);
             return document;
         }
 
         public async Task<List<DomainDocument>> GetAllAsync(CancellationToken cancellationToken)
         {
-            var documents = await _context.Documents.OrderByDescending(d => d.CreatedAt).ToListAsync();
+            var documents = await _context.Documents.Where(x=>!x.IsDeleted).OrderByDescending(d => d.CreatedAt).ToListAsync();
             return documents;
+        }
+        public async Task UpdateAsync(DomainDocument document,CancellationToken cancellationToken)
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        public async Task DeleteAsync(DomainDocument document, CancellationToken cancellationToken)
+        {
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
     }

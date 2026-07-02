@@ -1,4 +1,6 @@
 ﻿using CollaborativeDocs.Application.Documents.Commands.CreateDocument;
+using CollaborativeDocs.Application.Documents.Commands.DeleteDocument;
+using CollaborativeDocs.Application.Documents.Commands.UpdateDocument;
 using CollaborativeDocs.Application.Documents.Contracts;
 using CollaborativeDocs.Application.Documents.Queries;
 using CollaborativeDocs.Application.Documents.Queries.GetAllDocuments;
@@ -47,7 +49,26 @@ namespace CollaborativeDocs.API.Controllers
             var response = await _mediator.Send(new GetAllDocumentsQuery(), cancellationToken);
             return Ok(response);
         }
-
+        [HttpPut("{id:guid}")]
+        public async Task<IActionResult> Update(Guid id,UpdateDocumentCommand request, CancellationToken cancellationToken )
+        {
+            var response = await _mediator.Send(new UpdateDocumentCommand(id, request.title), cancellationToken);
+            if(response is false)
+            {
+                return NotFound();
+            }
+            return NoContent();
+        }
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> Delete(Guid id, DeleteDocumentCommand request, CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Send(new DeleteDocumentCommand(request.id), cancellationToken);
+            if(response is false)
+            {
+                return NotFound();
+            }
+            return Ok();
+        }
 
     }
 }
