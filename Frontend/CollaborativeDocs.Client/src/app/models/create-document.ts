@@ -1,3 +1,3 @@
-export interface CreateDocument {
+export interface CreateDocuments {
   title: string;
 }
