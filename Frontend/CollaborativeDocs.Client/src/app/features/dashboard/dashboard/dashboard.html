@@ -10,18 +10,50 @@
 
     </div>
 
-    <div class="card">
+    @if (documents.length === 0)
+    {
+        <div class="card">
 
-        <div class="card-body text-center">
+            <div class="card-body text-center py-5">
 
-            <h5>No Documents Available</h5>
+                <h3>No Documents Available</h3>
 
-            <p class="text-muted">
-                Create your first document.
-            </p>
+                <p class="text-muted">
+                    Create your first document.
+                </p>
+
+            </div>
 
         </div>
+    }
+    @else
+    {
+        <div class="row">
 
-    </div>
+            @for (document of documents; track document.id)
+            {
+                <div class="col-md-4 mb-3">
+
+                    <div class="card shadow-sm h-100">
+
+                        <div class="card-body">
+
+                            <h5 class="card-title">
+                                📄 {{ document.title }}
+                            </h5>
+
+                            <p class="card-text text-muted small">
+                                {{ document.id }}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
 
 </div>
