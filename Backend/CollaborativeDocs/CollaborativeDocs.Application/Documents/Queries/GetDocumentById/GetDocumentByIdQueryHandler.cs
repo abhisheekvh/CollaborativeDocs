@@ -29,6 +29,7 @@ namespace CollaborativeDocs.Application.Documents.Queries.GetDocumentById
             {
                 Id = document.Id,
                 Title = document.Title,
+                Content=document.Content,
             };
         }
     }

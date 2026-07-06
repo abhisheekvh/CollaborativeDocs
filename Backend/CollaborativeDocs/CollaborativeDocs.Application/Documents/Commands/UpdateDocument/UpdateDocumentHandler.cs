@@ -24,6 +24,7 @@ namespace CollaborativeDocs.Application.Documents.Commands.UpdateDocument
                 return false;
             }
             document.UpdateTitle(request.title);
+            document.UpdateContent(request.content);
             await _repository.UpdateAsync(document, cancellationToken);
             return true;
         }

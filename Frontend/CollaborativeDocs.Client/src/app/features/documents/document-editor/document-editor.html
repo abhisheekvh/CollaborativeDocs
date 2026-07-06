@@ -1,1 +1,79 @@
-<p>document-editor works!</p>
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-body">
+
+            <!-- Save Status -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+
+                <div>
+
+                    <strong>Status :</strong>
+
+                    @switch (saveStatus()) {
+
+                        @case (SaveStatus.Saved) {
+                            <span class="badge bg-success ms-2">
+                                ✅ Saved
+                            </span>
+                        }
+
+                        @case (SaveStatus.Saving) {
+                            <span class="badge bg-primary ms-2">
+                                🔄 Saving...
+                            </span>
+                        }
+
+                        @case (SaveStatus.Editing) {
+                            <span class="badge bg-warning text-dark ms-2">
+                                ✏️ Editing...
+                            </span>
+                        }
+
+                    }
+
+                </div>
+
+                @if(lastSaveTime())
+                {
+                    <small class="text-muted">
+                        Last saved :
+                        {{ lastSaveTime() | date:'shortTime' }}
+                    </small>
+                }
+
+            </div>
+
+            <!-- Title -->
+
+            <div class="mb-4">
+
+                <input
+                    type="text"
+                    class="form-control form-control-lg fw-bold border-0 shadow-none px-0"
+                    placeholder="Untitled Document"
+                    [ngModel]="documentRequest().title"
+                    (ngModelChange)="updateTitle($event)">
+
+            </div>
+
+            <!-- Content -->
+
+            <div class="mb-3">
+
+                <textarea
+                    rows="20"
+                    class="form-control"
+                    placeholder="Start typing here..."
+                    [ngModel]="documentRequest().content"
+                    (ngModelChange)="updateContent($event)">
+                </textarea>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

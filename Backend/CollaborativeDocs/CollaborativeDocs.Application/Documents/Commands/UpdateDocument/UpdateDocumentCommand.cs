@@ -8,6 +8,6 @@ using System.Threading.Tasks;
 
 namespace CollaborativeDocs.Application.Documents.Commands.UpdateDocument
 {
-    public record UpdateDocumentCommand(Guid id,string title):IRequest<bool>;
+    public record UpdateDocumentCommand(Guid id,string title,string content):IRequest<bool>;
    
 }

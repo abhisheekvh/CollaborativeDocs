@@ -52,7 +52,7 @@ namespace CollaborativeDocs.API.Controllers
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> Update(Guid id,UpdateDocumentCommand request, CancellationToken cancellationToken )
         {
-            var response = await _mediator.Send(new UpdateDocumentCommand(id, request.title), cancellationToken);
+            var response = await _mediator.Send(new UpdateDocumentCommand(id, request.title, request.content), cancellationToken);
             if(response is false)
             {
                 return NotFound();

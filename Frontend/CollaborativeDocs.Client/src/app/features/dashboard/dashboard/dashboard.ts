@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { DocumentService } from '../../../services/document.service';
 import { Document } from '../../../models/document';
 import { CreateDocument } from '../../documents/create-document/create-document';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
@@ -13,7 +14,7 @@ import { CreateDocument } from '../../documents/create-document/create-document'
 export class Dashboard implements OnInit {
 
   private readonly documentService = inject(DocumentService);
-
+  private readonly router = inject(Router);
   documents = signal<Document[]>([]);
 
   showCreateModal = signal(false);
@@ -43,13 +44,12 @@ export class Dashboard implements OnInit {
       },
 
       error: (error: any) => {
-
         console.error('Error fetching documents:', error);
-
       }
-
     });
-
   }
+  openDocument(documentId: string): void {
 
+    this.router.navigate(['/documents', documentId]);
+  }
 }
