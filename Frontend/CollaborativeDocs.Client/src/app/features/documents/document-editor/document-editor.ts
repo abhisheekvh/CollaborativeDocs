@@ -8,6 +8,8 @@ import { Subject, debounceTime } from 'rxjs';
 import { DocumentService } from '../../../services/document.service';
 import { UpdateDocument } from '../../../models/update-document';
 import { SaveStatus } from '../../../models/save-status';
+import { CanDeactivateComponent } from '../../../models/can-deactivate';
+
 
 @Component({
   selector: 'app-document-editor',
@@ -16,7 +18,7 @@ import { SaveStatus } from '../../../models/save-status';
   templateUrl: './document-editor.html',
   styleUrl: './document-editor.css'
 })
-export class DocumentEditor implements OnInit {
+export class DocumentEditor implements OnInit, CanDeactivateComponent {
 
   private readonly route = inject(ActivatedRoute);
   private readonly documentService = inject(DocumentService);
@@ -58,8 +60,6 @@ export class DocumentEditor implements OnInit {
         });
 
         this.lastSavedDocument = structuredClone(this.documentRequest());
-
-        console.log('Document fetched:', this.lastSavedDocument);
 
         this.lastSaveTime.set(new Date());
 
@@ -122,12 +122,10 @@ export class DocumentEditor implements OnInit {
 
   }
 
-  private saveDocument(): void {
+  public saveDocument(): void {
 
-    if (
-      JSON.stringify(this.documentRequest()) ===
-      JSON.stringify(this.lastSavedDocument)
-    ) {
+    if (JSON.stringify(this.documentRequest()) ===JSON.stringify(this.lastSavedDocument)) 
+    {
       return;
     }
 
@@ -149,12 +147,16 @@ export class DocumentEditor implements OnInit {
 
       error: (error) => {
 
-        console.error(error);
+        this.saveStatus.set(SaveStatus.Failed);
 
       }
 
     });
 
+  }
+
+  canDeactivate(): boolean {
+    return this.saveStatus()!==this.SaveStatus.Editing && this.saveStatus()!==SaveStatus.Saving;
   }
 
 }

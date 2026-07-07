@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { DocumentService } from '../../../services/document.service';
-import { Document } from '../../../models/document';
+import { Document } from '../../../models/DocumentModel';
 import { CreateDocument } from '../../documents/create-document/create-document';
 import { Router } from '@angular/router';
 
@@ -52,4 +52,15 @@ export class Dashboard implements OnInit {
 
     this.router.navigate(['/documents', documentId]);
   }
+  onDocumentCreated(document: Document): void {
+
+    this.documents.update(documents => [
+
+        document,
+
+        ...documents
+
+    ]);
+
+}
 }

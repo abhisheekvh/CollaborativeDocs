@@ -30,6 +30,14 @@
                                 ✏️ Editing...
                             </span>
                         }
+                        @case (SaveStatus.Failed) {
+                            <span class="badge bg-danger ms-2">
+                                ❌ Failed
+                            </span>
+                            <button class="btn btn-sm btn-outline-danger ms-3" (click)="saveDocument()">
+                                Retry
+                            </button>
+                        }
 
                     }
 

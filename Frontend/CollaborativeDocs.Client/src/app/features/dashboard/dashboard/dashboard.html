@@ -70,7 +70,8 @@
             <div class="col-lg-4">
 
                 <app-create-document
-                    (close)="closeCreateModal()">
+                    (close)="closeCreateModal()"
+                    (documentCreated)="onDocumentCreated($event)">
                 </app-create-document>
 
             </div>

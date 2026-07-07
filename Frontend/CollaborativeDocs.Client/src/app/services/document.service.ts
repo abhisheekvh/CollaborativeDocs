@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environment/environment';
-import { Document } from '../models/document';
+import { Document } from '../models/DocumentModel';
 import { CreateDocuments } from '../models/create-document';
 import { UpdateDocument } from '../models/update-document';
 
