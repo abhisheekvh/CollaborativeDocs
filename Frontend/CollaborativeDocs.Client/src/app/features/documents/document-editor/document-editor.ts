@@ -9,6 +9,7 @@ import { DocumentService } from '../../../services/document.service';
 import { UpdateDocument } from '../../../models/update-document';
 import { SaveStatus } from '../../../models/save-status';
 import { CanDeactivateComponent } from '../../../models/can-deactivate';
+import { SignalRService } from '../../../services/signalr.service';
 
 
 @Component({
@@ -23,6 +24,8 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly documentService = inject(DocumentService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly signalRService=inject(SignalRService);
+
   private readonly autoSaveSubject = new Subject<void>();
 
   readonly SaveStatus = SaveStatus;
@@ -71,7 +74,8 @@ onOnline(): void {
     {
         return;
     }
-
+    this.signalRService.startConnection().catch(error=>console.log(error));
+    this.signalRService.JoinDocumentGroup(id).catch(error=>console.log(error));
     this.documentService.getDocumentById(id).subscribe({
       next: (document) => {
         this.documentRequest.set({
@@ -102,13 +106,9 @@ onOnline(): void {
          takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => {
-
         this.saveDocument();
-
       });
-
   }
-
   updateTitle(title: string): void 
   {
 
@@ -202,5 +202,5 @@ onOnline(): void {
   {
     return this.saveStatus()!==this.SaveStatus.Editing && this.saveStatus()!==SaveStatus.Saving;
   }
-
+  
 }

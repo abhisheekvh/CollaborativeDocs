@@ -1,7 +1,8 @@
+using CollaborativeDocs.API.Hubs;
+using CollaborativeDocs.Application.Extensions;
+using CollaborativeDocs.Infrastructure.Extensions;
 using CollaborativeDocs.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using CollaborativeDocs.Infrastructure.Extensions;
-using CollaborativeDocs.Application.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +14,8 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins("http://localhost:4200")
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
@@ -25,10 +27,11 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddApplication();
 
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
-
+app.MapHub<DocumentHub>("/hubs/document");
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
