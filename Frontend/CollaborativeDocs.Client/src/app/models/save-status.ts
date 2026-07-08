@@ -2,5 +2,8 @@ export enum SaveStatus {
   Saved = 'Saved',
   Saving = 'Saving',
   Editing = 'Editing',
-  Failed = 'Failed'
+  Failed = 'Failed',
+  Idle = "Idle",
+  Retrying = "Retrying",
+  Offline = "Offline"
 }

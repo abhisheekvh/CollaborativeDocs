@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, HostListener, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
@@ -27,7 +27,7 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
 
   readonly SaveStatus = SaveStatus;
 
-  saveStatus = signal(SaveStatus.Saved);
+  saveStatus = signal(SaveStatus.Idle);
 
   lastSaveTime = signal<Date | null>(null);
 
@@ -35,24 +35,45 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
 
   private lastSavedDocument: UpdateDocument | null = null;
 
-  documentRequest = signal<UpdateDocument>({
+  private isSaving = false;
+  private hasPendingChanges = false;
+
+  private retryCount = 0;
+  private readonly maxRetries = 3;
+  private isOffline = false;
+@HostListener('window:online')
+  onofline() {
+    this.isOffline = true;
+    this.saveStatus.set(SaveStatus.Offline);
+  }
+  @HostListener('window:online')
+onOnline(): void {
+
+    this.isOffline = false;
+      if (this.hasPendingChanges) {
+        this.hasPendingChanges = false;
+        this.saveDocument();
+    }
+
+}
+
+  documentRequest = signal<UpdateDocument>
+  ({
     id: '',
     title: '',
     content: ''
   });
 
-  ngOnInit(): void {
-
+  ngOnInit(): void 
+  {
     const id = this.route.snapshot.paramMap.get('id');
-
-    if (!id) {
-      return;
+    if (!id) 
+    {
+        return;
     }
 
     this.documentService.getDocumentById(id).subscribe({
-
       next: (document) => {
-
         this.documentRequest.set({
           id: document.id,
           title: document.title,
@@ -88,74 +109,97 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
 
   }
 
-  updateTitle(title: string): void {
+  updateTitle(title: string): void 
+  {
 
-    this.documentRequest.update(document => ({
+      this.documentRequest.update(document => ({
       ...document,
       title
     }));
-
     this.saveStatus.set(SaveStatus.Editing);
-
-    if (this.isLoaded) {
-
-      this.autoSaveSubject.next();
-
+    if (this.isLoaded) 
+    {
+        this.autoSaveSubject.next();
     }
-
   }
 
-  updateContent(content: string): void {
-
-    this.documentRequest.update(document => ({
+  updateContent(content: string): void 
+  {
+      this.documentRequest.update(document => ({
       ...document,
       content
-    }));
+      }));
 
-    this.saveStatus.set(SaveStatus.Editing);
-
-    if (this.isLoaded) {
-
-      this.autoSaveSubject.next();
-
-    }
-
-  }
-
-  public saveDocument(): void {
-
-    if (JSON.stringify(this.documentRequest()) ===JSON.stringify(this.lastSavedDocument)) 
-    {
-      return;
-    }
-
-    this.saveStatus.set(SaveStatus.Saving);
-
-    this.documentService.updateDocument(this.documentRequest()).subscribe({
-
-      next: () => {
-
-        this.lastSavedDocument = structuredClone(this.documentRequest());
-
-        this.lastSaveTime.set(new Date());
-
-        this.saveStatus.set(SaveStatus.Saved);
-
-        console.log('Document updated successfully');
-
-      },
-
-      error: (error) => {
-
-        this.saveStatus.set(SaveStatus.Failed);
-
+      this.saveStatus.set(SaveStatus.Editing);
+      if (this.isLoaded) 
+      {
+          this.autoSaveSubject.next();
       }
-
-    });
-
   }
 
-  canDeactivate(): boolean {
+  public saveDocument(): void 
+  {
+        if (this.isOffline) 
+        {
+            this.hasPendingChanges = true;
+            this.saveStatus.set(SaveStatus.Offline);
+            return;
+        }
+        if (!this.isDocumentModified()) 
+        {
+            return;
+        }
+        if (this.isSaving) 
+        {
+          this.hasPendingChanges = true;
+          return;
+        }
+        this.isSaving = true;
+        this.saveStatus.set(SaveStatus.Saving);
+        this.documentService.updateDocument(this.documentRequest()).subscribe({
+
+        next: () => this.onSaveSuccess(),
+        error: (error) => this.onSaveFailure()
+        });
+  }
+  private onSaveSuccess(): void 
+  {
+        this.retryCount = 0;
+        this.lastSavedDocument = structuredClone(this.documentRequest());
+        this.lastSaveTime.set(new Date());
+        this.saveStatus.set(SaveStatus.Saved);
+        console.log('Document updated successfully');
+        if (this.hasPendingChanges) 
+        {
+            this.hasPendingChanges = false;
+            this.saveDocument();
+        }
+  }
+  private onSaveFailure(): void 
+  {
+        this.isSaving = false;
+        if (this.retryCount < this.maxRetries) 
+        {
+            this.retryCount++;
+            this.saveStatus.set(SaveStatus.Retrying);
+            const delay = Math.pow(2, this.retryCount) * 1000;
+            console.log(`Retrying in ${delay / 1000} seconds...`);
+            setTimeout(() => {
+              this.saveDocument();
+            }, delay);
+            return;
+        }
+        this.saveStatus.set(SaveStatus.Failed);
+        console.error('Failed to update document.');
+  }
+ private isDocumentModified(): boolean
+ {
+    const current = this.documentRequest();
+     return current.title !== this.lastSavedDocument?.title ||
+           current.content !== this.lastSavedDocument?.content;
+ }
+  canDeactivate(): boolean 
+  {
     return this.saveStatus()!==this.SaveStatus.Editing && this.saveStatus()!==SaveStatus.Saving;
   }
 
