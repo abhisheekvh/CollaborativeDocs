@@ -86,11 +86,9 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
   ngOnInit(): void {
 
     const id = this.route.snapshot.paramMap.get('id');
-
     if (!id) {
       return;
     }
-
     this.initializeSignalR(id).catch(error => {
       console.error('Error initializing SignalR:', error);
     });
@@ -168,8 +166,10 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
 
     if (this.isLoaded) {
 
+      //Send the document update to the server via SignalR
       this.sendDocumentUpdate().catch(console.error);
 
+      // Trigger the auto-save mechanism
       this.autoSaveSubject.next();
 
     }
@@ -189,9 +189,10 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
     this.saveStatus.set(SaveStatus.Editing);
 
     if (this.isLoaded) {
-
+      //Send the document update to the server via SignalR
       this.sendDocumentUpdate().catch(console.error);
 
+      // Trigger the auto-save mechanism
       this.autoSaveSubject.next();
 
     }
@@ -223,7 +224,7 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
     this.isSaving = true;
 
     this.saveStatus.set(SaveStatus.Saving);
-
+    // Save the updated document
     this.documentService.updateDocument(this.documentRequest()).subscribe({
 
       next: () => this.onSaveSuccess(),
@@ -261,7 +262,7 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
   private onSaveFailure(): void {
 
     this.isSaving = false;
-
+// Retry logic with exponential backoff
     if (this.retryCount < this.maxRetries) {
 
       this.retryCount++;
@@ -290,6 +291,7 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
 
   private isDocumentModified(): boolean {
 
+    // Check if the current document state differs from the last saved state
     const current = this.documentRequest();
 
     return current.title !== this.lastSavedDocument?.title ||
@@ -297,6 +299,7 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
 
   }
 
+  // Implement the canDeactivate method to prevent navigation if there are unsaved changes
   canDeactivate(): boolean {
 
     return this.saveStatus() !== SaveStatus.Editing &&
@@ -304,6 +307,7 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
 
   }
 
+  // Initialize SignalR connection and join the document group
   private async initializeSignalR(documentId: string): Promise<void> {
 
     await this.signalRService.startConnection();
@@ -314,6 +318,7 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
 
   }
 
+  // Send document updates to the server via SignalR
   private async sendDocumentUpdate(): Promise<void> {
 
     await this.signalRService.SendDocumentUpdate({
