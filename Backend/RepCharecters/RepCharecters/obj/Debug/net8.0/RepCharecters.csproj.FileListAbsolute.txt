@@ -1,0 +1,15 @@
+C:\Users\ashaa\abhishek\CollaborativeDocs\Backend\RepCharecters\RepCharecters\bin\Debug\net8.0\RepCharecters.exe
+C:\Users\ashaa\abhishek\CollaborativeDocs\Backend\RepCharecters\RepCharecters\bin\Debug\net8.0\RepCharecters.deps.json
+C:\Users\ashaa\abhishek\CollaborativeDocs\Backend\RepCharecters\RepCharecters\bin\Debug\net8.0\RepCharecters.runtimeconfig.json
+C:\Users\ashaa\abhishek\CollaborativeDocs\Backend\RepCharecters\RepCharecters\bin\Debug\net8.0\RepCharecters.dll
+C:\Users\ashaa\abhishek\CollaborativeDocs\Backend\RepCharecters\RepCharecters\bin\Debug\net8.0\RepCharecters.pdb
+C:\Users\ashaa\abhishek\CollaborativeDocs\Backend\RepCharecters\RepCharecters\obj\Debug\net8.0\RepCharecters.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\ashaa\abhishek\CollaborativeDocs\Backend\RepCharecters\RepCharecters\obj\Debug\net8.0\RepCharecters.AssemblyInfoInputs.cache
+C:\Users\ashaa\abhishek\CollaborativeDocs\Backend\RepCharecters\RepCharecters\obj\Debug\net8.0\RepCharecters.AssemblyInfo.cs
+C:\Users\ashaa\abhishek\CollaborativeDocs\Backend\RepCharecters\RepCharecters\obj\Debug\net8.0\RepCharecters.csproj.CoreCompileInputs.cache
+C:\Users\ashaa\abhishek\CollaborativeDocs\Backend\RepCharecters\RepCharecters\obj\Debug\net8.0\RepCharecters.sourcelink.json
+C:\Users\ashaa\abhishek\CollaborativeDocs\Backend\RepCharecters\RepCharecters\obj\Debug\net8.0\RepCharecters.dll
+C:\Users\ashaa\abhishek\CollaborativeDocs\Backend\RepCharecters\RepCharecters\obj\Debug\net8.0\refint\RepCharecters.dll
+C:\Users\ashaa\abhishek\CollaborativeDocs\Backend\RepCharecters\RepCharecters\obj\Debug\net8.0\RepCharecters.pdb
+C:\Users\ashaa\abhishek\CollaborativeDocs\Backend\RepCharecters\RepCharecters\obj\Debug\net8.0\RepCharecters.genruntimeconfig.cache
+C:\Users\ashaa\abhishek\CollaborativeDocs\Backend\RepCharecters\RepCharecters\obj\Debug\net8.0\ref\RepCharecters.dll

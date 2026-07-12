@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using CollaborativeDocs.Application.Documents.Contracts;
+using Microsoft.AspNetCore.SignalR;
 
 namespace CollaborativeDocs.API.Hubs
 {
@@ -27,6 +28,11 @@ namespace CollaborativeDocs.API.Hubs
             var groupName = $"document-{documentId}";
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
             Console.WriteLine($"{Context.ConnectionId} left {groupName}");
+        }
+        public async Task SendDocumentUpdate(DocumentUpdateDto document)
+        {
+            var groupName = $"document-{document.DocumentId}";
+            await Clients.OthersInGroup(groupName).SendAsync("ReceiveDocumentUpdate", document);
         }
     }
 }
