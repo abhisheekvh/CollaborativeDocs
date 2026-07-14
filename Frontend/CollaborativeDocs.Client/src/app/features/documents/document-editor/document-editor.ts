@@ -35,6 +35,8 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
 
   private readonly autoSaveSubject = new Subject<void>();
 
+  private readonly signalRSubject=new Subject<void>();
+
   readonly SaveStatus = SaveStatus;
 
   saveStatus = signal(SaveStatus.Idle);
@@ -120,7 +122,12 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
       }
 
     });
-
+    this.signalRSubject.pipe(
+      debounceTime(2000),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
+      this.sendDocumentUpdate().catch(console.error);
+    });
     this.autoSaveSubject
       .pipe(
         debounceTime(2000),
@@ -167,7 +174,7 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
     if (this.isLoaded) {
 
       //Send the document update to the server via SignalR
-      this.sendDocumentUpdate().catch(console.error);
+      this.signalRSubject.next();
 
       // Trigger the auto-save mechanism
       this.autoSaveSubject.next();
@@ -190,7 +197,7 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
 
     if (this.isLoaded) {
       //Send the document update to the server via SignalR
-      this.sendDocumentUpdate().catch(console.error);
+      this.signalRSubject.next();
 
       // Trigger the auto-save mechanism
       this.autoSaveSubject.next();
