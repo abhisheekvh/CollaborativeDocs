@@ -26,7 +26,7 @@ export class DocumentService
         return this.http.get<Document>(`${this.apiUrl}/${id}`);
     }
     updateDocument(request: UpdateDocument) {
-        return this.http.put(`${this.apiUrl}/${request.id}`, request);
+        return this.http.put(`${this.apiUrl}/${request.DocumentId}`, request);
     }
 }
 

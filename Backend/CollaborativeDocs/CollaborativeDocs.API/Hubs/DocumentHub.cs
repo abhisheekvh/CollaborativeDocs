@@ -34,5 +34,16 @@ namespace CollaborativeDocs.API.Hubs
             var groupName = $"document-{document.DocumentId}";
             await Clients.OthersInGroup(groupName).SendAsync("ReceiveDocumentUpdate", document);
         }
+
+        public async Task UserTyping(UserTypingDTO userTypingt)
+        {
+            var groupName = $"document-{userTypingt.documentId}";
+            await Clients.OthersInGroup(groupName).SendAsync("ReceiveTyping", userTypingt);
+        }
+        public async Task UserTypingIndicator(UserTypingDTO userTyping)
+        {
+            var groupName = $"Document-{userTyping.documentId}";
+            await Clients.OthersInGroup(groupName).SendAsync("ReceiveTyping", userTyping);
+        }
     }
 }

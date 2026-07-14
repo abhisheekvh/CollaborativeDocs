@@ -1,5 +1,5 @@
 export interface UpdateDocument {
-  id:string;
+  DocumentId:string;
   title: string;
   content:string;
 }

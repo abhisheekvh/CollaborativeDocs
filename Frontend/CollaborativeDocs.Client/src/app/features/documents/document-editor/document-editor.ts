@@ -37,16 +37,20 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
 
   private readonly signalRSubject=new Subject<void>();
 
+  private readonly userTypingSubject = new Subject<void>();
+
   readonly SaveStatus = SaveStatus;
 
   saveStatus = signal(SaveStatus.Idle);
 
   lastSaveTime = signal<Date | null>(null);
 
+  typingUsers = signal<string[]>([]);
+
   private isRemoteUpdate = false;
   private isLocalUpdate = false;
   documentRequest = signal<UpdateDocument>({
-    id: '',
+    DocumentId: '',
     title: '',
     content: ''
   });
@@ -85,80 +89,146 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
 
   }
 
-  ngOnInit(): void {
+ ngOnInit(): void {
 
-    const id = this.route.snapshot.paramMap.get('id');
-    if (!id) {
-      return;
-    }
-    this.initializeSignalR(id).catch(error => {
+  const id = this.route.snapshot.paramMap.get('id');
+
+  if (!id) {
+    return;
+  }
+
+  // -------------------------------
+  // Initialize SignalR
+  // -------------------------------
+  this.initializeSignalR(id)
+    .catch(error => {
       console.error('Error initializing SignalR:', error);
     });
 
-    this.documentService.getDocumentById(id).subscribe({
+  // -------------------------------
+  // Load document
+  // -------------------------------
+  this.documentService.getDocumentById(id).subscribe({
 
-      next: (document) => {
+    next: (document) => {
 
-        this.documentRequest.set({
-          id: document.id,
-          title: document.title,
-          content: document.content
-        });
+      this.documentRequest.set({
+        DocumentId: document.id,
+        title: document.title,
+        content: document.content
+      });
 
-        this.lastSavedDocument = structuredClone(this.documentRequest());
+      this.lastSavedDocument = structuredClone(this.documentRequest());
 
-        this.lastSaveTime.set(new Date());
+      this.lastSaveTime.set(new Date());
 
-        this.saveStatus.set(SaveStatus.Saved);
+      this.saveStatus.set(SaveStatus.Saved);
 
-        this.isLoaded = true;
+      this.isLoaded = true;
 
-      },
+    },
 
-      error: error => {
+    error: error => {
 
-        console.error(error);
+      console.error(error);
 
-      }
+    }
+
+  });
+
+  // -------------------------------
+  // SignalR Pipeline (300ms)
+  // -------------------------------
+  this.signalRSubject
+    .pipe(
+      debounceTime(300),
+      takeUntilDestroyed(this.destroyRef)
+    )
+    .subscribe(() => {
+
+      this.sendDocumentUpdate()
+        .catch(console.error);
 
     });
-    this.signalRSubject.pipe(
+
+  // -------------------------------
+  // Auto Save Pipeline (2 seconds)
+  // -------------------------------
+  this.autoSaveSubject
+    .pipe(
       debounceTime(2000),
       takeUntilDestroyed(this.destroyRef)
-    ).subscribe(() => {
-      this.sendDocumentUpdate().catch(console.error);
+    )
+    .subscribe(() => {
+
+      this.saveDocument();
+
     });
-    this.autoSaveSubject
-      .pipe(
-        debounceTime(2000),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe(() => {
 
-        this.saveDocument();
+  // -------------------------------
+  // Typing Pipeline (500ms)
+  // -------------------------------
+  this.userTypingSubject
+    .pipe(
+      debounceTime(500),
+      takeUntilDestroyed(this.destroyRef)
+    )
+    .subscribe(() => {
 
-      });
+      this.sendTypingNotification()
+        .catch(console.error);
 
-      this.signalRService.documentUpdate$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((update: UpdateDocument) => {
-        this.isRemoteUpdate = true;
-        this.documentRequest.set({
-          id: update.id,
-          title: update.title,
-          content: update.content
-        });
+    });
 
-        this.lastSavedDocument = structuredClone(this.documentRequest());
+  // -------------------------------
+  // Receive document updates
+  // -------------------------------
+  this.signalRService.documentUpdate$
+    .pipe(
+      takeUntilDestroyed(this.destroyRef)
+    )
+    .subscribe((update: UpdateDocument) => {
 
-        this.lastSaveTime.set(new Date());
+      this.isRemoteUpdate = true;
 
-       // this.saveStatus.set(SaveStatus.Saved);
+      this.documentRequest.update(document => ({
+        ...document,
+        title: update.title,
+        content: update.content
+      }));
 
-        console.log('Document updated from SignalR:', update);
-      });
+      this.lastSavedDocument = structuredClone(this.documentRequest());
+
+      this.lastSaveTime.set(new Date());
+
+      console.log('Document updated from SignalR:', update);
+
       this.isRemoteUpdate = false;
-  }
+
+    });
+
+  // -------------------------------
+  // Receive typing updates
+  // -------------------------------
+  this.signalRService.userType$
+    .pipe(
+      takeUntilDestroyed(this.destroyRef)
+    )
+    .subscribe(userTyping => {
+
+      console.log(`${userTyping.userName} is typing...`);
+
+      this.typingUsers.set([userTyping.userName]);
+
+      setTimeout(() => {
+
+        this.typingUsers.set([]);
+
+      }, 2000);
+
+    });
+
+}
 
   updateTitle(title: string): void {
     if(this.isRemoteUpdate) {
@@ -173,13 +243,13 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
 
     if (this.isLoaded) {
 
-      //Send the document update to the server via SignalR
-      this.signalRSubject.next();
+    this.userTypingSubject.next();
 
-      // Trigger the auto-save mechanism
-      this.autoSaveSubject.next();
+    this.signalRSubject.next();
 
-    }
+    this.autoSaveSubject.next();
+
+}
 
   }
 
@@ -194,15 +264,15 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
     }));
 
     this.saveStatus.set(SaveStatus.Editing);
+if (this.isLoaded) {
 
-    if (this.isLoaded) {
-      //Send the document update to the server via SignalR
-      this.signalRSubject.next();
+    this.userTypingSubject.next();
 
-      // Trigger the auto-save mechanism
-      this.autoSaveSubject.next();
+    this.signalRSubject.next();
 
-    }
+    this.autoSaveSubject.next();
+
+}
 
   }
 
@@ -317,20 +387,22 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
   // Initialize SignalR connection and join the document group
   private async initializeSignalR(documentId: string): Promise<void> {
 
-    await this.signalRService.startConnection();
+  await this.signalRService.startConnection();
 
-    this.signalRService.registerDocumentUpdateListener();
+  this.signalRService.registerDocumentUpdateListener();
 
-    await this.signalRService.JoinDocumentGroup(documentId);
+  this.signalRService.registerTypingListener();
 
-  }
+  await this.signalRService.JoinDocumentGroup(documentId);
+
+}
 
   // Send document updates to the server via SignalR
   private async sendDocumentUpdate(): Promise<void> {
 
     await this.signalRService.SendDocumentUpdate({
 
-      id: this.documentRequest().id,
+      DocumentId: this.documentRequest().DocumentId,
 
       title: this.documentRequest().title,
 
@@ -339,5 +411,17 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
     });
 
   }
+
+
+  private async sendTypingNotification(): Promise<void> {
+
+  await this.signalRService.SendTyping({
+    documentId: this.documentRequest().DocumentId,
+
+    userName: "Abhishek",
+    connectionId: ''
+  });
+
+}
 
 }

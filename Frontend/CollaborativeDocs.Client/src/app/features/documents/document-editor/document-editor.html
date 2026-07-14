@@ -1,10 +1,35 @@
 <div class="container mt-4">
 
-    <div class="card shadow">
+    <div class="card shadow-lg border-0">
 
         <div class="card-body">
 
-            <!-- Save Status -->
+            <!-- ================= Header ================= -->
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+
+                <div>
+                    <h3 class="fw-bold mb-1">
+                        📄 Collaborative Document
+                    </h3>
+
+                    <small class="text-muted">
+                        Edit and collaborate in real time
+                    </small>
+                </div>
+
+                <div>
+                    <span class="badge bg-success">
+                        🟢 Connected
+                    </span>
+                </div>
+
+            </div>
+
+            <hr>
+
+            <!-- ================= Save Status ================= -->
+
             <div class="d-flex justify-content-between align-items-center mb-4">
 
                 <div>
@@ -49,51 +74,163 @@
                             </span>
 
                             <button
-                                type="button"
                                 class="btn btn-sm btn-outline-danger ms-3"
                                 (click)="saveDocument()">
+
                                 Retry Now
+
                             </button>
                         }
+
                         @case (SaveStatus.Offline) {
                             <span class="badge bg-dark ms-2">
                                 📡 Offline
                             </span>
                         }
+
                     }
 
                 </div>
 
-                @if (lastSaveTime()) {
-                    <small class="text-muted">
-                        Last saved:
-                        {{ lastSaveTime() | date:'shortTime' }}
-                    </small>
-                }
+                <div>
+
+                    @if(lastSaveTime()){
+
+                        <small class="text-muted">
+
+                            💾 Last saved :
+                            {{ lastSaveTime() | date:'shortTime' }}
+
+                        </small>
+
+                    }
+
+                </div>
 
             </div>
 
-            <!-- Title -->
+            <!-- ================= Collaboration ================= -->
+
+            <div class="row mb-4">
+
+                <!-- Collaborators -->
+
+                <div class="col-md-6">
+
+                    <div class="card border-success">
+
+                        <div class="card-header bg-success text-white">
+
+                            👥 Active Collaborators
+
+                        </div>
+
+                        <div class="card-body">
+
+                            <div class="d-flex align-items-center mb-2">
+
+                                <span class="badge rounded-pill bg-success me-2">
+                                    🟢
+                                </span>
+
+                                You
+
+                            </div>
+
+                            <!-- We'll replace these with SignalR later -->
+
+                            <div class="d-flex align-items-center">
+
+                                <span class="badge rounded-pill bg-success me-2">
+                                    🟢
+                                </span>
+
+                                John
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Typing Indicator -->
+
+                <div class="col-md-6">
+
+                    <div class="card border-primary">
+
+                        <div class="card-header bg-primary text-white">
+
+                            ✍️ Live Activity
+
+                        </div>
+
+                        <div class="card-body">
+
+                            @if(typingUsers().length > 0){
+
+                                <div class="text-primary fw-semibold">
+
+                                    ✍️
+
+                                    {{ typingUsers().join(', ') }}
+
+                                    is typing...
+
+                                </div>
+
+                            }
+                            @else {
+
+                                <div class="text-muted">
+
+                                    Nobody is typing
+
+                                </div>
+
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ================= Document Title ================= -->
+
             <div class="mb-4">
 
                 <input
                     type="text"
-                    class="form-control form-control-lg fw-bold border-0 shadow-none px-0"
+                    class="form-control form-control-lg fw-bold border-0 shadow-none px-0 fs-2"
                     placeholder="Untitled Document"
                     [ngModel]="documentRequest().title"
-                    (ngModelChange)="updateTitle($event)" />
+                    (ngModelChange)="updateTitle($event)"/>
 
             </div>
 
-            <!-- Content -->
-            <div class="mb-3">
+            <!-- ================= Document Editor ================= -->
+
+            <div>
 
                 <textarea
+
                     rows="20"
+
                     class="form-control"
+
+                    style="resize:none;font-size:16px;line-height:1.7"
+
                     placeholder="Start typing here..."
+
                     [ngModel]="documentRequest().content"
+
                     (ngModelChange)="updateContent($event)">
+
                 </textarea>
 
             </div>
