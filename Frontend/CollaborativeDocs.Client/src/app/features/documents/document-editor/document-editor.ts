@@ -1,20 +1,11 @@
-import {
-  Component,
-  DestroyRef,
-  HostListener,
-  inject,
-  OnInit,
-  signal
-} from '@angular/core';
+import {Component,DestroyRef,HostListener,inject,OnInit,signal} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, debounceTime } from 'rxjs';
-
 import { DocumentService } from '../../../services/document.service';
-import { SignalRService } from '../../../services/signalr.service';
-
+import { DocumentCollaborationService } from './Services/document-collaboration.service';
 import { UpdateDocument } from '../../../models/update-document';
 import { SaveStatus } from '../../../models/save-status';
 import { CanDeactivateComponent } from '../../../models/can-deactivate';
@@ -28,27 +19,21 @@ import { CanDeactivateComponent } from '../../../models/can-deactivate';
 })
 export class DocumentEditor implements OnInit, CanDeactivateComponent {
 
+  //Inject
   private readonly route = inject(ActivatedRoute);
   private readonly documentService = inject(DocumentService);
-  private readonly signalRService = inject(SignalRService);
+  private readonly collaborationService = inject(DocumentCollaborationService);
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly autoSaveSubject = new Subject<void>();
 
-  private readonly signalRSubject=new Subject<void>();
-
-  private readonly userTypingSubject = new Subject<void>();
-
   readonly SaveStatus = SaveStatus;
 
+  //Signal
   saveStatus = signal(SaveStatus.Idle);
-
   lastSaveTime = signal<Date | null>(null);
-
   typingUsers = signal<string[]>([]);
 
-  private isRemoteUpdate = false;
-  private isLocalUpdate = false;
   documentRequest = signal<UpdateDocument>({
     DocumentId: '',
     title: '',
@@ -56,7 +41,7 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
   });
 
   private isLoaded = false;
-
+  private isRemoteUpdate = false;
   private lastSavedDocument: UpdateDocument | null = null;
 
   private isSaving = false;
@@ -69,359 +54,209 @@ export class DocumentEditor implements OnInit, CanDeactivateComponent {
 
   @HostListener('window:offline')
   onOffline(): void {
-
     this.isOffline = true;
     this.saveStatus.set(SaveStatus.Offline);
-
   }
 
   @HostListener('window:online')
   onOnline(): void {
-
     this.isOffline = false;
-
     if (this.hasPendingChanges) {
-
       this.hasPendingChanges = false;
       this.saveDocument();
-
     }
-
+  }
+  ngOnInit(): void 
+  {
+      const id = this.route.snapshot.paramMap.get('id');
+      if (!id) {
+      return;
   }
 
- ngOnInit(): void {
-
-  const id = this.route.snapshot.paramMap.get('id');
-
-  if (!id) {
-    return;
-  }
-
-  // -------------------------------
   // Initialize SignalR
-  // -------------------------------
-  this.initializeSignalR(id)
-    .catch(error => {
-      console.error('Error initializing SignalR:', error);
-    });
+  this.collaborationService.initialize(id);
 
-  // -------------------------------
   // Load document
-  // -------------------------------
   this.documentService.getDocumentById(id).subscribe({
-
-    next: (document) => {
-
-      this.documentRequest.set({
+    next: (document) => 
+    {
+        this.documentRequest.set({
         DocumentId: document.id,
         title: document.title,
         content: document.content
       });
-
       this.lastSavedDocument = structuredClone(this.documentRequest());
-
       this.lastSaveTime.set(new Date());
-
       this.saveStatus.set(SaveStatus.Saved);
-
       this.isLoaded = true;
-
     },
-
     error: error => {
-
       console.error(error);
-
     }
-
   });
-
-  // -------------------------------
-  // SignalR Pipeline (300ms)
-  // -------------------------------
-  this.signalRSubject
-    .pipe(
-      debounceTime(300),
-      takeUntilDestroyed(this.destroyRef)
-    )
-    .subscribe(() => {
-
-      this.sendDocumentUpdate()
-        .catch(console.error);
-
-    });
-
-  // -------------------------------
-  // Auto Save Pipeline (2 seconds)
-  // -------------------------------
+ 
+  // Auto Save to SQL Pipeline (2 seconds)
   this.autoSaveSubject
     .pipe(
       debounceTime(2000),
       takeUntilDestroyed(this.destroyRef)
     )
     .subscribe(() => {
-
       this.saveDocument();
-
     });
 
-  // -------------------------------
-  // Typing Pipeline (500ms)
-  // -------------------------------
-  this.userTypingSubject
-    .pipe(
-      debounceTime(500),
-      takeUntilDestroyed(this.destroyRef)
-    )
-    .subscribe(() => {
-
-      this.sendTypingNotification()
-        .catch(console.error);
-
-    });
-
-  // -------------------------------
-  // Receive document updates
-  // -------------------------------
-  this.signalRService.documentUpdate$
+  // Receive document updates from SignalR
+  this.collaborationService.documentUpdates$
     .pipe(
       takeUntilDestroyed(this.destroyRef)
     )
     .subscribe((update: UpdateDocument) => {
-
       this.isRemoteUpdate = true;
-
       this.documentRequest.update(document => ({
         ...document,
         title: update.title,
         content: update.content
       }));
-
       this.lastSavedDocument = structuredClone(this.documentRequest());
-
       this.lastSaveTime.set(new Date());
-
       console.log('Document updated from SignalR:', update);
-
       this.isRemoteUpdate = false;
-
     });
-
-  // -------------------------------
-  // Receive typing updates
-  // -------------------------------
-  this.signalRService.userType$
+ 
+  // Receive typing updates from SignaR
+  this.collaborationService.typingUpdates$
     .pipe(
       takeUntilDestroyed(this.destroyRef)
     )
     .subscribe(userTyping => {
-
       console.log(`${userTyping.userName} is typing...`);
-
       this.typingUsers.set([userTyping.userName]);
-
       setTimeout(() => {
-
         this.typingUsers.set([]);
-
       }, 2000);
-
     });
-
 }
 
-  updateTitle(title: string): void {
-    if(this.isRemoteUpdate) {
+// Updating the Title when User types
+  updateTitle(title: string): void 
+  {
+      if(this.isRemoteUpdate) {
+        return;
+      }
+      this.documentRequest.update(document => ({
+        ...document,
+        title
+      }));
+
+      this.saveStatus.set(SaveStatus.Editing);
+
+      if (!this.isLoaded) {
       return;
-    }
-    this.documentRequest.update(document => ({
-      ...document,
-      title
-    }));
+      }
+      // Notify the Typing when someone type
+      this.collaborationService.notifyTyping(
+      this.documentRequest().DocumentId,
+      'Abhishek');
+      this.collaborationService.notifyDocumentChanged(
+      this.documentRequest());
+      this.autoSaveSubject.next();
+  }
+ 
+  // Updating the Content when User types
+  updateContent(content: string): void 
+  {
+      if(this.isRemoteUpdate) {
+        return;
+      }
 
-    this.saveStatus.set(SaveStatus.Editing);
+      this.documentRequest.update(document => ({
+        ...document,
+        content
+      }));
 
-    if (this.isLoaded) {
+      this.saveStatus.set(SaveStatus.Editing);
+      if (!this.isLoaded) {
+      return;
+      }
 
-    this.userTypingSubject.next();
+      this.collaborationService.notifyTyping(
+      this.documentRequest().DocumentId,
+      'Abhishek');
 
-    this.signalRSubject.next();
-
-    this.autoSaveSubject.next();
-
-}
-
+      this.collaborationService.notifyDocumentChanged(
+      this.documentRequest());
+      this.autoSaveSubject.next();
   }
 
-  updateContent(content: string): void {
-    if(this.isRemoteUpdate) {
-      return;
-    }
-
-    this.documentRequest.update(document => ({
-      ...document,
-      content
-    }));
-
-    this.saveStatus.set(SaveStatus.Editing);
-if (this.isLoaded) {
-
-    this.userTypingSubject.next();
-
-    this.signalRSubject.next();
-
-    this.autoSaveSubject.next();
-
-}
-
-  }
-
+  //Save the document to Database
   public saveDocument(): void {
-
     if (this.isOffline) {
-
       this.hasPendingChanges = true;
       this.saveStatus.set(SaveStatus.Offline);
-
       return;
-
     }
-
     if (!this.isDocumentModified()) {
       return;
     }
-
     if (this.isSaving) {
-
       this.hasPendingChanges = true;
       return;
 
     }
-
     this.isSaving = true;
-
     this.saveStatus.set(SaveStatus.Saving);
     // Save the updated document
     this.documentService.updateDocument(this.documentRequest()).subscribe({
-
       next: () => this.onSaveSuccess(),
-
       error: () => this.onSaveFailure()
-
     });
-
   }
 
+  //Once save success
   private onSaveSuccess(): void {
-
     this.isSaving = false;
-
     this.retryCount = 0;
-
     this.lastSavedDocument = structuredClone(this.documentRequest());
-
     this.lastSaveTime.set(new Date());
-
     this.saveStatus.set(SaveStatus.Saved);
-
     console.log('Document updated successfully');
-
     if (this.hasPendingChanges) {
-
       this.hasPendingChanges = false;
-
       this.saveDocument();
-
     }
-
   }
 
-  private onSaveFailure(): void {
-
-    this.isSaving = false;
-// Retry logic with exponential backoff
-    if (this.retryCount < this.maxRetries) {
-
-      this.retryCount++;
-
-      this.saveStatus.set(SaveStatus.Retrying);
-
-      const delay = Math.pow(2, this.retryCount) * 1000;
-
-      console.log(`Retrying in ${delay / 1000} seconds...`);
-
-      setTimeout(() => {
-
-        this.saveDocument();
-
-      }, delay);
-
-      return;
-
+  //If document saving is failed
+  private onSaveFailure(): void 
+  {
+      this.isSaving = false;
+      // Retry logic with exponential backoff
+      if (this.retryCount < this.maxRetries) {
+        this.retryCount++;
+        this.saveStatus.set(SaveStatus.Retrying);
+        const delay = Math.pow(2, this.retryCount) * 1000;
+        console.log(`Retrying in ${delay / 1000} seconds...`);
+        setTimeout(() => {
+          this.saveDocument();
+        }, delay);
+        return;
     }
-
     this.saveStatus.set(SaveStatus.Failed);
-
     console.error('Failed to update document.');
-
   }
 
+  //Checking if the document is modified
   private isDocumentModified(): boolean {
 
     // Check if the current document state differs from the last saved state
     const current = this.documentRequest();
-
     return current.title !== this.lastSavedDocument?.title ||
            current.content !== this.lastSavedDocument?.content;
-
   }
 
   // Implement the canDeactivate method to prevent navigation if there are unsaved changes
   canDeactivate(): boolean {
-
     return this.saveStatus() !== SaveStatus.Editing &&
            this.saveStatus() !== SaveStatus.Saving;
-
   }
-
-  // Initialize SignalR connection and join the document group
-  private async initializeSignalR(documentId: string): Promise<void> {
-
-  await this.signalRService.startConnection();
-
-  this.signalRService.registerDocumentUpdateListener();
-
-  this.signalRService.registerTypingListener();
-
-  await this.signalRService.JoinDocumentGroup(documentId);
-
-}
-
-  // Send document updates to the server via SignalR
-  private async sendDocumentUpdate(): Promise<void> {
-
-    await this.signalRService.SendDocumentUpdate({
-
-      DocumentId: this.documentRequest().DocumentId,
-
-      title: this.documentRequest().title,
-
-      content: this.documentRequest().content
-
-    });
-
-  }
-
-
-  private async sendTypingNotification(): Promise<void> {
-
-  await this.signalRService.SendTyping({
-    documentId: this.documentRequest().DocumentId,
-
-    userName: "Abhishek",
-    connectionId: ''
-  });
-
-}
-
 }
