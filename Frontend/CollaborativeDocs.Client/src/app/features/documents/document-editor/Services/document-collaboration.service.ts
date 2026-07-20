@@ -53,7 +53,8 @@ export class DocumentCollaborationService {
     );
   }
   // Queue Typing Notification
-  notifyTyping(documentId: string, userName: string): void {
+  notifyTyping(documentId: string, userName: string): void 
+  {
     this.typingSubject.next({
       documentId,
       userName,
